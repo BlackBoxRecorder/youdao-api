@@ -12,33 +12,10 @@ class YoudaoAPI:
     """
 
     def __init__(self):
-        # 有道API配置
-        self.api_params = {
-            "keyfrom": "longcwang",
-            "key": "131895274",
-            "type": "data",
-            "doctype": "json",
-            "version": "1.1",
-            "q": "query",
-        }
-        self.api_url = "http://fanyi.youdao.com/openapi.do"
         self.web_url = "http://dict.youdao.com/w/eng/{0}/#keyfrom=dict2.index"
         self.mobile_collins_url = "http://mobile.youdao.com/singledict?q={word}&dict=collins&le=eng&more=false"
         self.mobile_trans_sents_url = "http://mobile.youdao.com/singledict?q={word}&dict=blng_sents_part&le=eng&more=false"
         self.voice_url = "https://dict.youdao.com/dictvoice?type=1&audio={word}"
-
-    def get_api_result(self, word):
-        """
-        通过有道API获取基础翻译数据
-        """
-        try:
-            self.api_params["q"] = word
-            response = requests.get(self.api_url, params=self.api_params)
-            response.raise_for_status()
-            return response.json()
-        except RequestException as e:
-            print(f"网络错误: {e}")
-            return None
 
     def parse_web_html(self, html, word):
         """
@@ -79,7 +56,7 @@ class YoudaoAPI:
                         # 确保音标文本存在且格式正确
                         us_phonetic = phons[1].string if phons[1].string else ""
                         # 移除音标中的括号并构建对象格式
-                        
+
                         if us_phonetic.startswith("[") and us_phonetic.endswith("]"):
                             us_phonetic_text = us_phonetic[1:-1]
                             result["basic"]["phonetic"] = {
@@ -296,39 +273,33 @@ class YoudaoAPI:
             trans_sents_soup = BeautifulSoup(trans_sents_response.text, "html.parser")
             trans_sents_data = self.extract_trans_sentences(trans_sents_soup)
 
-            return {"collins": collins_data, "trans_sents": trans_sents_data}
+            return {"collins_sents": collins_data, "trans_sents": trans_sents_data}
         except RequestException as e:
             print(f"获取移动版数据错误: {e}")
-            return {"collins": [], "trans_sents": []}
+            return {"collins_sents": [], "trans_sents": []}
 
     def get_result(self, word):
         """
         获取完整的单词查询结果
         """
-        # 获取有道API数据
-        basic_result = self.get_api_result(word)
-        if not basic_result:
-            # 如果API失败，尝试网页解析
-            basic_result = self.get_web_result(word)
 
-        # 获取移动版数据
+        basic_result = self.get_web_result(word)
+
         sentance_data = self.get_sentence_data(word)
 
-        # 构建符合result.json格式的结果结构
         json_result = {
             "success": True,
             "error": "",
             "data": {
                 "word": word,
-                "phonetic":{},
+                "phonetic": {},
                 "explains": [],
-                "phrase":[],
-                "collins_sents": sentance_data["collins"],
+                "phrase": [],
+                "collins_sents": sentance_data["collins_sents"],
                 "trans_sents": sentance_data["trans_sents"],
-            }
+            },
         }
 
-        # 添加基础信息字段
         if basic_result and isinstance(basic_result, dict):
             # 添加web字段（如果存在）
             if "web" in basic_result:
@@ -381,13 +352,7 @@ def translate_word():
         return jsonify(result)
 
     except Exception as e:
-        return jsonify(
-            {
-                "success": False,
-                "error": str(e),
-                "data": {}
-            }
-        ), 500
+        return jsonify({"success": False, "error": str(e), "data": {}}), 500
 
 
 @app.route("/api/health", methods=["GET"])
