@@ -4,6 +4,15 @@ from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
 from flask import Flask, jsonify, request
 import argparse
+import sqlite3
+import json
+import os
+import hashlib
+from urllib.parse import urlparse
+
+# 导入新创建的模块
+from database import DatabaseManager
+from audio_manager import AudioManager
 
 
 class YoudaoAPI:
@@ -325,6 +334,8 @@ app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
 # 初始化API服务
 youdao_api = YoudaoAPI()
+db_manager = DatabaseManager()
+audio_manager = AudioManager()
 
 
 @app.route("/api/translate", methods=["GET"])
@@ -346,9 +357,41 @@ def translate_word():
                 }
             ), 400
 
-        # 获取整合结果
-        result = youdao_api.get_result(word)
+        # 首先尝试从缓存中获取数据
+        cached_result = db_manager.get_word_cache(word)
+        if cached_result:
+            # 返回缓存数据
+            json_result = {
+                "success": True,
+                "error": "",
+                "data": cached_result
+            }
+            return jsonify(json_result)
 
+        # 缓存中没有数据，请求有道API
+        result = youdao_api.get_result(word)
+        
+        # 处理音频文件并保存到缓存
+        if result["success"] and "data" in result:
+            data = result["data"]
+            
+            # 处理phonetic中的音频
+            if "phonetic" in data and "audio" in data["phonetic"]:
+                audio_filename = audio_manager.download_audio(data["phonetic"]["audio"])
+                if audio_filename:
+                    data["phonetic"]["audio"] = audio_filename
+            
+            # 处理trans_sents中的音频
+            if "trans_sents" in data:
+                for sent in data["trans_sents"]:
+                    if "audio_url" in sent and sent["audio_url"]:
+                        audio_filename = audio_manager.download_audio(sent["audio_url"])
+                        if audio_filename:
+                            sent["audio_url"] = audio_filename
+            
+            # 保存到缓存
+            db_manager.save_word_cache(data)
+            
         return jsonify(result)
 
     except Exception as e:
