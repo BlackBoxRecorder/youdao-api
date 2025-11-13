@@ -31,6 +31,40 @@ pip install uv
 uv sync
 ```
 
+## 使用Docker
+
+项目包含Dockerfile，可以轻松打包成Docker镜像。
+
+### 构建Docker镜像
+
+```bash
+docker build -t youdao-api .
+```
+
+### 运行Docker容器
+
+```bash
+# 前台运行
+docker run -p 5088:5088 youdao-api
+
+# 后台运行
+docker run -d -p 5088:5088 --name youdao-api-container youdao-api
+
+# 挂载本地目录以持久化数据
+docker run -d -p 5088:5088 -v $(pwd)/audio:/app/audio -v $(pwd)/cache.db:/app/cache.db --name youdao-api-container youdao-api
+```
+
+### 环境变量
+
+可以通过以下环境变量自定义服务：
+
+- `HOST` - 服务监听的主机地址（默认: 0.0.0.0）
+- `PORT` - 服务监听的端口（默认: 5088）
+
+```bash
+docker run -d -p 5088:5088 -e PORT=8080 --name youdao-api-container youdao-api
+```
+
 ## 运行服务
 
 ```bash
@@ -170,6 +204,7 @@ GET /
 ├── main.py          # 主程序文件，包含API实现
 ├── database.py      # 数据库管理模块
 ├── audio_manager.py # 音频文件管理模块
+├── Dockerfile       # Docker镜像配置文件
 ├── pyproject.toml   # 项目配置和依赖声明
 ├── uv.lock         # 依赖锁定文件
 ├── cache.db        # SQLite缓存数据库

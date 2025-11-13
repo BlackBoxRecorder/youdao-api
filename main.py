@@ -421,7 +421,7 @@ def index():
                     "description": "健康检查",
                 },
                 "audio": {
-                    "url": "/api/audio/<filename>",
+                    "url": "/api/audio/filename",
                     "methods": ["GET"],
                     "description": "通过文件名获取音频文件",
                     "parameters": {"filename": "音频文件名"},
