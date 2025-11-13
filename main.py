@@ -2,13 +2,8 @@
 import requests
 from requests.exceptions import RequestException
 from bs4 import BeautifulSoup
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 import argparse
-import sqlite3
-import json
-import os
-import hashlib
-from urllib.parse import urlparse
 
 # 导入新创建的模块
 from database import DatabaseManager
@@ -425,9 +420,37 @@ def index():
                     "methods": ["GET"],
                     "description": "健康检查",
                 },
+                "audio": {
+                    "url": "/api/audio/<filename>",
+                    "methods": ["GET"],
+                    "description": "通过文件名获取音频文件",
+                    "parameters": {"filename": "音频文件名"},
+                    "example": "/api/audio/4fb05030bab22a053611e825deeb3eb6.mp3",
+                },
             },
         }
     )
+
+
+@app.route("/api/audio/<filename>", methods=["GET"])
+def get_audio(filename):
+    """
+    通过文件名获取音频文件
+    GET: /api/audio/<filename>
+    """
+    try:
+        # 检查文件是否存在
+        import os
+        audio_dir = "audio"
+        file_path = os.path.join(audio_dir, filename)
+        
+        if not os.path.exists(file_path):
+            return jsonify({"success": False, "error": "音频文件不存在"}), 404
+            
+        # 返回音频文件
+        return send_from_directory(audio_dir, filename)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 if __name__ == "__main__":

@@ -99,6 +99,20 @@ GET /api/translate?word=hello
 }
 ```
 
+### 音频文件访问接口
+
+```
+GET /api/audio/{filename}
+```
+
+**示例请求：**
+```
+GET /api/audio/4fb05030bab22a053611e825deeb3eb6.mp3
+```
+
+**响应：**
+直接返回音频文件内容，可以用于播放或下载。
+
 ### 健康检查接口
 
 ```
