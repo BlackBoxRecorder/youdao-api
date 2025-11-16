@@ -1,6 +1,6 @@
 # 有道词典API服务
 
-这是一个基于Flask的Web API服务，整合了有道词典Web API和柯林斯词典数据，提供单词查询功能。
+这是一个基于Flask的Web API服务，整合了有道词典Web API，提供单词查询功能。
 
 ## 功能特性
 
@@ -58,7 +58,7 @@ docker run -d -p 5088:5088 -v $(pwd)/audio:/app/audio -v $(pwd)/cache.db:/app/ca
 
 可以通过以下环境变量自定义服务：
 
-- `HOST` - 服务监听的主机地址（默认: 0.0.0.0）
+- `HOST` - 服务监听的主机地址（默认: 127.0.0.1）
 - `PORT` - 服务监听的端口（默认: 5088）
 
 ```bash
@@ -68,14 +68,8 @@ docker run -d -p 5088:5088 -e PORT=8080 --name youdao-api-container youdao-api
 ## 运行服务
 
 ```bash
-# 默认运行（监听0.0.0.0:5088）
-python main.py
-
-# 自定义主机和端口
-python main.py --host 127.0.0.1 --port 8080
-
-# 调试模式运行
-python main.py --debug
+# 默认运行（监听127.0.0.1:5088）
+uv run main.py
 ```
 
 ## API接口
@@ -170,17 +164,8 @@ GET /
 
 返回API服务的基本信息和可用端点说明。
 
-## 缓存机制
 
-本服务使用SQLite数据库作为缓存层，以提高查询性能并减少对外部API的请求次数。
-
-### 工作原理
-
-1. 用户查询单词时，首先检查SQLite数据库中是否已缓存该单词的数据
-2. 如果存在缓存数据，则直接返回缓存内容
-3. 如果不存在缓存数据，则请求有道API获取数据，并将结果保存到数据库中
-
-### 缓存结构
+## 数据库结构
 
 数据库包含一个名为 `word_cache` 的表，包含以下字段：
 - `word` (TEXT, PRIMARY KEY) - 单词

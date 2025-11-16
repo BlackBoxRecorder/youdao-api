@@ -456,7 +456,7 @@ def get_audio(filename):
 if __name__ == "__main__":
     # 解析命令行参数
     parser = argparse.ArgumentParser(description="有道词典API服务")
-    parser.add_argument("--host", default="0.0.0.0", help="主机地址")
+    parser.add_argument("--host", default="127.0.0.1", help="主机地址")
     parser.add_argument("--port", type=int, default=5088, help="端口号")
     parser.add_argument("--debug", action="store_true", help="调试模式")
 
