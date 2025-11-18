@@ -356,26 +356,22 @@ def translate_word():
         cached_result = db_manager.get_word_cache(word)
         if cached_result:
             # 返回缓存数据
-            json_result = {
-                "success": True,
-                "error": "",
-                "data": cached_result
-            }
+            json_result = {"success": True, "error": "", "data": cached_result}
             return jsonify(json_result)
 
         # 缓存中没有数据，请求有道API
         result = youdao_api.get_result(word)
-        
+
         # 处理音频文件并保存到缓存
         if result["success"] and "data" in result:
             data = result["data"]
-            
+
             # 处理phonetic中的音频
             if "phonetic" in data and "audio" in data["phonetic"]:
                 audio_filename = audio_manager.download_audio(data["phonetic"]["audio"])
                 if audio_filename:
                     data["phonetic"]["audio"] = audio_filename
-            
+
             # 处理trans_sents中的音频
             if "trans_sents" in data:
                 for sent in data["trans_sents"]:
@@ -383,10 +379,10 @@ def translate_word():
                         audio_filename = audio_manager.download_audio(sent["audio_url"])
                         if audio_filename:
                             sent["audio_url"] = audio_filename
-            
+
             # 保存到缓存
             db_manager.save_word_cache(data)
-            
+
         return jsonify(result)
 
     except Exception as e:
@@ -441,12 +437,13 @@ def get_audio(filename):
     try:
         # 检查文件是否存在
         import os
+
         audio_dir = "audio"
         file_path = os.path.join(audio_dir, filename)
-        
+
         if not os.path.exists(file_path):
             return jsonify({"success": False, "error": "音频文件不存在"}), 404
-            
+
         # 返回音频文件
         return send_from_directory(audio_dir, filename)
     except Exception as e:
