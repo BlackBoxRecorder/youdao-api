@@ -38,20 +38,20 @@ uv sync
 ### 构建Docker镜像
 
 ```bash
-docker build -t youdao-api .
+docker build -t timetick/youdao-api .
 ```
 
 ### 运行Docker容器
 
 ```bash
 # 前台运行
-docker run -p 5088:5088 youdao-api
+docker run -p 5088:5088 timetick/youdao-api
 
 # 后台运行
 docker run -d -p 5088:5088 --name youdao-api-container youdao-api
 
 # 挂载本地目录以持久化数据
-docker run -d -p 5088:5088 -v $(pwd)/audio:/app/audio -v $(pwd)/cache.db:/app/cache.db --name youdao-api-container youdao-api
+docker run -d -p 5088:5088 -v $(pwd)/audio:/app/audio -v $(pwd)/cache.db:/app/cache.db --name youdao-api timetick/youdao-api
 ```
 
 ### 环境变量
